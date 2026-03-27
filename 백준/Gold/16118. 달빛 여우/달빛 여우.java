@@ -1,118 +1,109 @@
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.StringTokenizer;
 
 public class Main {
-	public static final long INF = 100000 * 4000 * 4;;
-	
-	public static class Node {
-		int v, w;
-		public Node(int v, int w) {
-			this.v = v;
-			this.w = w;
-		}
-	}
-	public static int N, M, a, b, d;
-	public static long minFox[], minWolf[][];
-	public static List<Node>[] adjList;
-	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st = new StringTokenizer(br.readLine());
+		int n = Integer.parseInt(st.nextToken());
+		int m = Integer.parseInt(st.nextToken());
 		
-		N = Integer.parseInt(st.nextToken());	// 나무 그루터기의 개수
-		M = Integer.parseInt(st.nextToken());	// 오솔길의 개수
+		List<int[]> graph[] = new ArrayList[n + 1];
+		int dist_fox[] = new int[n + 1];
+		int dist_wolf[][] = new int[n + 1][2];
 		
-		adjList = new ArrayList[N+1];
-		for(int i = 1; i <= N; i++)
-			adjList[i] = new ArrayList<>();
 		
-		for(int i = 0; i < M; i++) {
+		int INF = Integer.MAX_VALUE;
+		
+		for(int i = 1; i < n + 1; i++) {
+			graph[i] = new ArrayList<>();
+			dist_fox[i] = INF;
+			dist_wolf[i][0] = INF;
+			dist_wolf[i][1] = INF;
+		}
+		
+		for(int i = 0 ; i < m; i++) {
 			st = new StringTokenizer(br.readLine());
+			int from = Integer.parseInt(st.nextToken());
+			int to = Integer.parseInt(st.nextToken());
+			int cost = Integer.parseInt(st.nextToken()) * 2;
 			
-			a = Integer.parseInt(st.nextToken());
-			b = Integer.parseInt(st.nextToken());
-			d = Integer.parseInt(st.nextToken()) * 2;
-			
-			adjList[a].add(new Node(b, d));
-			adjList[b].add(new Node(a, d));
+			graph[from].add(new int[] {cost, to});
+			graph[to].add(new int[] {cost, from});
 		}
 		
-		minFox = new long[N+1];
-		minWolf = new long[2][N+1];
-		Arrays.fill(minFox, INF);
-		for(int i = 0; i < 2; i++)
-			Arrays.fill(minWolf[i], INF);
+		// 여우
+		PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
 		
-		dijkstraFox();
-		dijkstraWolf();
-		
-		int cnt = 0;
-		for(int i = 2; i <= N; i++) {
-			if(minFox[i] < Math.min(minWolf[0][i], minWolf[1][i]))
-				cnt++;
-		}
-		System.out.println(cnt);
-	}
-	
-	public static void dijkstraWolf() {
-		PriorityQueue<long[]> pq = new PriorityQueue<>((o1, o2) -> Long.compare(o1[1], o2[1]));
-		
-		pq.offer(new long[] {1, 0, 0});		// 3번째 변수는 몇번째 방문 vertex인지 저장
-		minWolf[0][1] = 0;
-		
+		pq.add(new int[] {0, 1});
+		dist_fox[1] = 0;
 		while(!pq.isEmpty()) {
-			long[] idx = pq.poll();
-			int v = (int)idx[0];
-			long w = idx[1];
-			int state = (int)idx[2];
+			int cur[] = pq.poll();
+			int cost = cur[0];
+			int v = cur[1];
 			
+			if(dist_fox[v] < cost) continue;
 			
-			if(w > minWolf[state][v]) continue;
-			
-			for(Node node : adjList[v]) {
-				int nextV = node.v;
-				long nextW = 0;
+			for(int next[] : graph[v]) {
+				int nextCost = next[0];
+				int nextV = next[1];
 				
-				if(state == 0) {
-					nextW = w + (node.w / 2);
-					if(nextW < minWolf[1][nextV]) {
-						minWolf[1][nextV] = nextW;
-						pq.offer(new long[] {nextV, nextW, 1});
-					}
-					
-				} else {
-					nextW = w + (node.w * 2);
-					if(nextW < minWolf[0][nextV]) {
-						minWolf[0][nextV] = nextW;
-						pq.offer(new long[] {nextV, nextW, 0});
-					}
-				}
-			}	
-		}
-	}
-	
-	public static void dijkstraFox() {
-		PriorityQueue<long[]> pq = new PriorityQueue<>((o1, o2) -> Long.compare(o1[1], o2[1]));
-		
-		pq.offer(new long[] {1, 0});
-		minFox[1] = 0;
-		
-		while(!pq.isEmpty()) {
-			long[] idx = pq.poll();
-			int v = (int)idx[0];
-			long w = idx[1];
-			
-			if(w > minFox[v]) continue;
-			
-			for(Node node : adjList[v]) {
-				int nextV = node.v;
-				long nextW = node.w;
+				int newCost = cost + nextCost;
 				
-				if(minFox[v] + nextW < minFox[nextV]) {
-					minFox[nextV] = minFox[v] + nextW;
-					pq.offer(new long[] {nextV, minFox[nextV]});
+				if(dist_fox[nextV] > newCost) {
+					dist_fox[nextV] = newCost;
+					pq.add(new int[] {newCost, nextV});
 				}
 			}
 		}
+		pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+		
+		pq.add(new int[] {0, 1, 0}); // cost, v, 전에 어느 속도로 뛰어왔는지, 0일경우 다음에 2배로, 1일경우 다음 1/2배로
+		dist_wolf[1][0] = 0;
+		while(!pq.isEmpty()) {
+			int cur[] = pq.poll();
+			int cost = cur[0];
+			int v = cur[1];
+			int status = cur[2];
+			
+			
+			if(dist_wolf[v][status] < cost) continue;
+			
+			
+			for(int next[] : graph[v]) {
+				int nextCost = next[0];
+				int nextV = next[1];
+								
+				if(status == 0) {
+					int newCost = cost + nextCost / 2;
+					if(dist_wolf[nextV][1] > newCost) {
+						dist_wolf[nextV][1] = newCost;
+						pq.add(new int[] {newCost, nextV, 1});
+					}
+				}
+				else {
+					int newCost = cost + nextCost * 2;
+					if(dist_wolf[nextV][0] > newCost) {
+						dist_wolf[nextV][0] = newCost;
+						pq.add(new int[] {newCost, nextV, 0});
+					
+					}
+				}
+			}
+		}
+
+        int cnt = 0;
+        for(int i = 1; i < n + 1; i++){
+            int num = Math.min(dist_wolf[i][0], dist_wolf[i][1]);
+            if(dist_fox[i] < num){
+                cnt++;
+            }
+        }
+        System.out.println(cnt);
 	}
 }
