@@ -1,54 +1,55 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.StringTokenizer;
 
 public class Main {
 	public static void main(String[] args) throws IOException{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		int n = Integer.parseInt(br.readLine());
-		
+		int mask = 0;
 		StringBuilder sb = new StringBuilder();
-		Set<Integer> set = new HashSet<>();
 		
-		for (int i = 0; i < n; i++) {
+		for(int i = 0; i < n; i++) {
 			StringTokenizer st = new StringTokenizer(br.readLine());
-			String tmp = st.nextToken();
+			String order = st.nextToken();
 			
-			
-			
-			if(tmp.equals("add")) {
+			if(order.equals("add")) {
 				int num = Integer.parseInt(st.nextToken());
-				set.add(num);
+				mask |= (1 << num);
 			}
-			
-			else if(tmp.equals("remove")) {
-				int num = Integer.parseInt(st.nextToken());		
-				set.remove(num);
-			}
-			
-			else if(tmp.equals("check")) {
+			else if(order.equals("remove")) {
 				int num = Integer.parseInt(st.nextToken());
-				sb.append(set.contains(num) ? 1 : 0).append('\n');
+				if((mask & (1 << num)) != 0) { // 존재하는 것
+					mask &= ~(1 << num); 
+				}
 			}
-			
-			else if(tmp.equals("toggle")) {
+			else if(order.equals("check")) {
 				int num = Integer.parseInt(st.nextToken());
-				if(set.contains(num)) set.remove(num);
-				else set.add(num);
+				if((mask & (1 << num)) != 0) { // 존재하는 것
+					sb.append(1).append('\n');
+				}
+				else {
+					sb.append(0).append('\n');
+				}
 			}
-			
-			else if(tmp.equals("all")) {
-			    set.clear();
-			    for (int x = 1; x <= 20; x++) set.add(x);
+			else if(order.equals("toggle")) {
+				int num = Integer.parseInt(st.nextToken());
+				if((mask & (1 << num)) != 0) { // 존재하는 것
+					mask &= ~(1 << num); 
+				}
+				else {
+					mask |= (1 << num);
+				}
 			}
-
-			else if(tmp.equals("empty")) {
-				set.clear();
+			else if(order.equals("all")) {
+				mask = (1 << 21) -1;
+			}
+			else if(order.equals("empty")) {
+				mask = 0;
 			}
 		}
-		System.out.print(sb.toString());
+		System.out.print(sb);
 	}
 }
