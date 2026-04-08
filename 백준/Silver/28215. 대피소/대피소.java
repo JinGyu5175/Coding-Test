@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -46,7 +45,7 @@ public class Main {
 			
 			
 			for(int i = 0; i < n; i++) {
-				if(visited[i]) continue;
+
 				int x = home[i][0];
 				int y = home[i][1];
 				
