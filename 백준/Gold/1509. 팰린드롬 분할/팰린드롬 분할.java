@@ -1,15 +1,17 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String word = br.readLine();
-        int n = word.length();
+	public static void main(String[] args) throws IOException{
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		String word = br.readLine();
+		int n = word.length();
+		
         boolean dist[][] = new boolean[n][n];
-
-        // 길이가 1
+        
+	    // 길이가 1
         for(int i = 0; i < n; i++){
             dist[i][i] = true;
         }
@@ -31,22 +33,25 @@ public class Main {
                 }
             }
         }
-
+        
         int dp[] = new int[n];
         dp[0] = 1;
-        for(int i = 0; i < n; i++){
-            dp[i] = Integer.MAX_VALUE;
-
-            for(int j = 0; j < i + 1; j++){
-                if(dist[j][i]){
-                    if(j == 0) dp[i] = 1;
-                    else dp[i] = Math.min(dp[i], dp[j - 1] + 1);
-                }
-            }
-
+        
+        for(int i = 1; i < n; i++) {
+        	dp[i] = Integer.MAX_VALUE;
+        	
+        	for(int j = 0; j < n; j++) {
+        		if(dist[j][i]) {
+        			if(j == 0) dp[i] = 1;
+        			else {
+        				dp[i] = Math.min(dp[i], dp[j-1] + 1);
+        			}
+        		}
+        	}
         }
-
         System.out.println(dp[n - 1]);
-
-    }
+        
+        
+		
+	}
 }
